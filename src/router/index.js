@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld.vue'
+import List from '@/components/List.vue'
 import Detail from '@/components/Detail.vue'
 import Search from '@/components/Search.vue'
 
@@ -11,8 +11,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'HelloWorld',
-      component: HelloWorld
+      name: 'List',
+      component: List
     },{
       path: '/detail',
       name: 'detail',

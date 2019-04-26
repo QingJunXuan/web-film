@@ -18,6 +18,7 @@
               <img
                 class="poster"
                 :src="film.poster"
+                :alt="film.title"
                 @click="filmDetail(film._id)"
               />
             </el-col>
@@ -48,10 +49,10 @@
           </el-row>
           <hr class="hr-row" />
         </div>
-        <el-row style="margin:50px 0px">
+        <el-row style="margin-top:50px;margin-bottom:50px">
+          <el-col align="center">
           <el-pagination
             background
-            @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
             :current-page.sync="currentPage"
             :page-size="10"
@@ -59,6 +60,7 @@
             :total="totalFilms"
           >
           </el-pagination>
+          </el-col>
         </el-row>
       </el-col>
     </el-row>
@@ -82,46 +84,7 @@ export default {
       //每页
       films:[],
       //全部
-      filmList: [
-        {
-          _id: "1299731",
-          directors: [{ name: "马丁·里特", id: "1032478" }],
-          genres: ["剧情", "动作", "西部"],
-          season_count: "",
-          rating: {
-            average: "8.0",
-            rating_people: "145",
-            stars: ["24.0", "53.8", "19.2", "2.9", "0.0"]
-          },
-          pubdate: ["1967-03-21"],
-          countries: ["美国"],
-          lens_id: 5435,
-          casts: [
-            { name: "保罗·纽曼", id: "1054516" },
-            { name: "弗雷德里克·马奇", id: "1049865" },
-            { name: "理查德·布恩", id: "1019098" },
-            { name: "黛安妮·赛琳托", id: "1027409" },
-            { name: "卡梅隆·米切尔", id: "1041239" }
-          ],
-          title: "野狼 Hombre",
-          site: "",
-          poster: "https://img3.doubanio.com/lpic/s2555801.jpg",
-          summary:
-            "约翰·罗塞尔自幼是老罗塞尔先生从战俘中带回来并抚养他长大的，但是他生性豪放不羁，又回到土著人的中间，在茫茫山野间生活。直到老人去世时，留给他自己的一处房子，那里现在是一家旅馆，由能乾的杰茜经营。老人希望他回到白人中间，用英语思考问题。他却将房子变卖，杰茜只好回家。他们一行人从旅馆出发，一同乘坐马车的还有医生夫妇以及强行霸占别人位置的弗兰克。他们担心路上不安全，改走一条废弃的山路，却遭到一伙人的袭击，原来弗兰克是劫匪中的成员，目的是医生携带的不义之财。这伙人打破了他们的水袋，劫走了医生的妻子做人质。匆忙间，劫匪们遗失了钱袋，他们要用医生妻子换钱袋。胆小的医生不敢前去，一任妻子在炎炎烈日下呻吟。带领大家对付劫匪的罗塞尔冒死前往，在腹背受敌的不利情况下，只身对敌，为了营救他人与匪徒同归于尽。",
-          languages: ["英语"],
-          episodes: "",
-          writers: [
-            { name: "埃尔莫·伦纳德", id: "1027969" },
-            { name: "Harriet Frank Jr.", id: "search" },
-            { name: "欧文·拉文奇", id: "1042352" }
-          ],
-          imdb: "tt0061770",
-          year: "1967",
-          duration: "111",
-          douban_site: "",
-          aka: [""]
-        }
-      ],
+      filmList: [],
       leftheight:{
           height:'500px'
       }
@@ -149,7 +112,6 @@ export default {
             this.filmList = resp.data
             if(this.select==1){
                 this.searchedList = this.searchByName(this.filmList,this.search)
-                console.log(this.searchedList)
             }else if(this.select==2){
                 this.searchedList=this.filmList.filter(function(film){
                     var length = film.genres.length
@@ -181,8 +143,6 @@ export default {
             this.searchedList=this.searchedList.sort(this.compare('rating','rate'))
             this.films=this.searchedList.slice(0,10)
             this.totalFilms = this.searchedList.length 
-
-            console.log(this.films,"films")
           } 
         });
       },
@@ -204,11 +164,7 @@ export default {
     }
     return arr;
   },
-    handleSizeChange(val) {
-      console.log(`每页 ${val} 条`);
-    },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
       this.films=this.searchedList.slice((val-1)*10,val*10)
     },
     filmDetail(id) {
@@ -229,42 +185,6 @@ body {
   padding: 0;
   margin: 0;
   background-color: antiquewhite;
-}
-.headCard {
-  height: 10px;
-  width: 100%;
-  margin-top: -7px;
-  border-bottom: 2px solid #ddd;
-}
-.slogan{
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 37px;
-  font-weight: bolder;
-  letter-spacing: 6px;
-  color:#fff;
-}
-.el-select .el-input {
-  width: 115px;
-  font-size: 14px;
-  background-color: #fff;
-  color:rgb(34, 34, 34);
-}
-.el-input .el-input__inner{
-  height: 45px;
-  font-size: 16px;
-}
-.headCard {
-  height: 50px;
-  width: 100%;
-  margin-top: -7px;
-  border-bottom: 2px solid #ddd;
-}
-.leftType {
-  margin-bottom: -5px;
-  cursor: pointer;
-}
-.leftType:hover {
-  color: coral;
 }
 .poster {
   height: 150px;

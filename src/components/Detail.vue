@@ -10,10 +10,11 @@
     </el-row>
     <el-row style="padding-top:60px;padding-bottom:60px">
       <el-col :span="20" :offset="2">
-        <el-col :span="9">
-          <img class="detailImg" :src="film.poster">
+        <el-col :span="6" :offset="2">
+          <img class="detailImg" :src="film.poster" 
+                :alt="film.title">
         </el-col>
-        <el-col :span="13" style="text-align:left;margin-top:-15px">
+        <el-col :span="13" :offset="1" style="text-align:left;margin-top:-15px">
           <div>
             <p class="name">{{film.title}}<span class="language">&nbsp;[{{ film.languages[0] }}]</span></p>
             <p>
@@ -75,20 +76,6 @@
                 <span style="font-weight:100">{{film.duration}}天</span>
               </el-col>
             </el-row>
-           <!--  <el-row style="padding-top:20px">
-              <el-col :span="6" :offset="2">
-                分类：
-                <span style="font-weight:100">{{film._id}}</span>
-              </el-col>
-              <el-col :span="6" :offset="2">
-                出版社：
-                <span style="font-weight:100">{{film._id}}</span>
-              </el-col>
-              <el-col :span="6" :offset="2">
-                出版时间：
-                <span style="font-weight:100">{{film._id}}</span>
-              </el-col>
-            </el-row> -->
           </P>
           <p style="height:3px;background-color:rgb(220,220,220)"></p>
         </el-col>
@@ -149,7 +136,6 @@ export default {
             }
           });
           this.film=test[0]
-          console.log(this.film,"film",id,"id");
         })
         .catch(err => {
           console.log(err);
@@ -166,8 +152,8 @@ export default {
   letter-spacing: 5px;
 }
 .detailImg {
-  height: 360px;
-  width: 260px;
+  height: 80%;
+  width: 80%;
 }
 .name {
   font-size: 25px;
