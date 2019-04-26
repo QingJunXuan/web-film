@@ -99,7 +99,7 @@ export default {
     };
   },
   created() {
-    axios.get("/static/films.json").then(resp => {
+    axios.get("/api/films.json").then(resp => {
       if (resp.status === 200) {
         this.filmList = resp.data.sort(
           this.compare("rating", "average", false)
