@@ -3,7 +3,7 @@
       <el-col :span="14" :offset="5">
         <div>
           <h1 style="margin-top:40px;padding-bottom:10px;text-align:center">
-            TOP 200 MOVIES
+            TOP {{totalFilms}} MOVIES
           </h1>
           <hr class="hr-row" />
         </div>
@@ -13,21 +13,21 @@
               <img
                 class="poster"
                 :src="film.poster"
-                :alt="film.title"
-                @click="filmDetail(film._id)"
+                :onerror="replace"
+                @click="filmDetail(film.id)"
               />
             </el-col>
             <el-col :span="11" :offset="1" style="text-align:left;margin-top:-20px">
               <div>
-                <p class="name" @click="filmDetail(film._id)">
+                <p class="name" @click="filmDetail(film.id)">
                   {{ film.title
                   }}<span class="language"
-                    >&nbsp;[{{ film.languages[0] }}]</span
+                    >&nbsp;[{{ film.language }}]</span
                   >
                 </p>
                 <p class="director">
                   <span style="font-weight:bold">导演：</span
-                  >{{ film.directors[0].name }}
+                  >{{ film.directors }}
                 </p>
 
                 <p class="intro">
@@ -44,16 +44,16 @@
               </div>
             </el-col>
             <el-col :span="7" :offset="1" style="text-align:center">
-              <p class="rate" v-if="film.rating.average.length != 0">
+              <p class="rate" v-if="film.average.length != 0">
                 
-                {{ "评分："+film.rating.average }}
+                {{ "评分："+film.average }}
               </p>
-              <p class="ratepeople" v-if="film.rating.rating_people.length != 0">
-                {{ "（评价人数："+film.rating.rating_people +"）"}}
+              <p class="ratepeople" v-if="film.rating_people.length != 0">
+                {{ "（评价人数："+film.rating_people +"）"}}
               </p>
-              <p class="pubdate" v-if="film.pubdate[0].length != 0">
+              <p style="font-size: 15px;" v-if="film.pubdate.length != 0">
                 上映时间：<span style="color:cadetblue;font-weight:bold">{{
-                  film.pubdate[0]
+                  film.pubdate
                 }}</span>
               </p>
             </el-col>
@@ -77,14 +77,11 @@
   </div>
 </template>
 
-<script>
-import axios from "axios";
+<script scoped>
 export default {
   name: "list",
   data() {
     return {
-      search: "",
-      select: "1",
       currentPage: 0,
       pages: 0,
       totalFilms: 0,
@@ -95,27 +92,45 @@ export default {
       filmList: [],
       leftheight: {
         height: "500px"
-      }
+      },
+      replace:'this.src="'+require('../assets/replace.jpg')+'"'
     };
   },
+   watch:{
+    '$route'(to,from){
+        this.init()
+    }
+  },
   created() {
-    axios.get("/api/films.json").then(resp => {
-      if (resp.status === 200) {
-        this.filmList = resp.data.sort(
-          this.compare("rating", "average", false)
+   this.init()
+  },
+  methods: {
+    init(){
+      this.$axios
+       .get("/api/getFilmByPage").then(resp => {
+       if (resp.status === 200) {
+        var tempList =resp.data.sort(
+          this.compare("average")
         );
+        this.filmList = tempList.filter(function(film){
+          film.directors.replace(","," ");
+          var types=new Array();
+          types=film.genres.split(",");
+          film.genres=types;
+
+          return film
+        })
         this.totalFilms = this.filmList.length;
         this.films = this.filmList.slice(0, 10);
-      }
+      } 
     }).catch(err=>{
       console.log(err)
     });
-  },
-  methods: {
-    compare(property1, property2) {
+    },
+    compare(property1) {
       return function(a, b) {
-        var value1 = a[property1][property2];
-        var value2 = b[property1][property2];
+        var value1 = a[property1];
+        var value2 = b[property1];
         return value2 - value1;
       };
     },
@@ -130,15 +145,6 @@ export default {
         }
       });
     },
-    searchFilm() {
-      this.$router.push({
-        path: "/search",
-        query: {
-          search: this.search,
-          select: this.select
-        }
-      });
-    }
   }
 };
 </script>
@@ -183,14 +189,11 @@ body {
   color: #4e5c99ec;
   margin-top: -5px;
 }
-.pubdate {
-  font-size: 15px;
-}
 .intro {
   font-size: 13px;
   color: #535351ec;
   text-align: left;
-  height: 33px;
+  height: 34px;
   width: 367px;
   text-overflow: -o-ellipsis-lastline;
   overflow: hidden;

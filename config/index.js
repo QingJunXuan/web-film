@@ -9,14 +9,14 @@ module.exports = {
 
     // Paths
     assetsSubDirectory: 'static',
-    assetsPublicPath: './',
+    assetsPublicPath: '/',
     proxyTable: {
-      '/apis':{
-        target:'/static',
-        changeOrigin:true,
-        pathRewrite:{
-          '^/apis':''
-        },
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': ''
+        }
       }
     },
 

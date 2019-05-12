@@ -5,8 +5,8 @@
         <p style="text-align:right;margin-top:-7px;margin-right:40px;font-size:18px" v-if="totalFilms!=0">
           您现在浏览的是<span style="color:#0066cc;font-weight:bold">{{' '+search+' '}}</span>相关条目
         </p>
-        <p style="margin-top:-7px;margin-right:40px;font-size:18px" v-else>
-            未搜索到相关条目
+        <p style="margin-top:-7px;margin-right:40px;font-size:18px;text-align:right;" v-else>
+            未搜索到<span style="color:#0066cc;font-weight:bold">{{' '+search+' '}}</span>相关条目
         </p>
       </el-card>
     </el-row>
@@ -19,15 +19,16 @@
                 class="poster"
                 :src="film.poster"
                 :alt="film.title"
-                @click="filmDetail(film._id)"
+                :onerror="replace"
+                @click="filmDetail(film.id)"
               />
             </el-col>
             <el-col :span="12" style="text-align:left;margin-top:-20px">
               <div>
-                <p class="name" @click="filmDetail(film._id)">
-                  {{ film.title}}<span class="language">&nbsp;[{{ film.languages[0] }}]</span>
+                <p class="name" @click="filmDetail(film.id)">
+                  {{ film.title}}<span class="language">&nbsp;[{{ film.language }}]</span>
                 </p>
-                <p class="director"> <span style="font-weight:bold">导演：</span>{{ film.directors[0].name }}</p>
+                <p class="director"> <span style="font-weight:bold">导演：</span>{{ film.directors }}</p>
 
                 <p class="intro">
                   <span style="font-weight:bold">简介：</span>
@@ -36,14 +37,14 @@
                 <p><span  v-for="(genre,index) in film.genres" :key="index"><el-tag size="small" :type="type[index]">{{genre}}</el-tag>&nbsp;</span></p>
               </div>
             </el-col>
-            <el-col :span="7">
-              <p class="rate">
+            <el-col :span="7" style="text-align:center">
+              <p class="rate" v-if="film.average.length != 0">
                 
-                {{ "评分："+film.rating.average }}
+                {{ "评分："+film.average }}
               </p>
-              <p class="ratepeople">{{"（评价人数："+ film.rating.rating_people+"）"}}</p>
-           <p class="pubdate" v-if="film.pubdate[0].length!=0">
-                上映时间：<span style="color:cadetblue;font-weight:bold">{{film.pubdate[0]
+              <p class="ratepeople"  v-if="film.rating_people.length != 0">{{"（评价人数："+ film.rating_people+"）"}}</p>
+           <p style="font-size: 15px;" v-if="film.pubdate.length!=0">
+                上映时间：<span style="color:cadetblue;font-weight:bold">{{film.pubdate
                 }}</span>
               </p> </el-col>
           </el-row>
@@ -73,9 +74,10 @@ export default {
   name: "search",
   data() {
     return {
+      replace:'this.src="'+require('../assets/replace.jpg')+'"',
       search: "",
       select: "",
-      currentPage: 0,
+      currentPage: 1,
       pages:0,
       totalFilms:0,
       type:["","success","danger","warning",""],
@@ -92,80 +94,134 @@ export default {
   },
   watch:{
     '$route'(to,from){
-        this.init()
+      this.currentPage=1
+        this.init(this.currentPage)
     }
-
   },
   created() {
-      this.init()
+      this.init(this.currentPage)
   },
   methods: {
-    init() {
+    init(page) {
       const search = this.$route.query.search
       this.search = search
       const select = this.$route.query.select
       this.select = select
-        axios.get('/static/films.json')
-        .then((resp) => {
-          if (resp.status === 200) {
-            
-            this.filmList = resp.data
-            if(this.select==1){
-                this.searchedList = this.searchByName(this.filmList,this.search)
-            }else if(this.select==2){
-                this.searchedList=this.filmList.filter(function(film){
-                    var length = film.genres.length
-                    for(var i=0;i<length;i++){
-                        if(film.genres[i]==search){
-                            return film
-                        }
-                    }
-                })
-            }else if(this.select==3){
-                this.searchedList=this.filmList.filter(function(film){
-                    var length = film.countries.length
-                    for(var i=0;i<length;i++){
-                        if(film.countries[i]==search){
-                            return film
-                        }
-                    }
-                })
-            }else if(this.select==4){
-                this.searchedList=this.filmList.filter(function(film){
-                    var length = film.directors.length
-                    for(var i=0;i<length;i++){
-                        if(film.directors[i].name==search){
-                            return film
-                        }
-                    }
-                })
-            }
-            this.searchedList=this.searchedList.sort(this.compare('rating','rate'))
-            this.films=this.searchedList.slice(0,10)
-            this.totalFilms = this.searchedList.length 
-          } 
-        });
-      },
- 
-    compare(property1,property2){
-      return function(a,b){
-        var value1=a[property1][property2]
-        var value2=b[property1][property2]
-        return value2-value1
+      if(this.select==1){//name
+        this.searchByName(page)
+      }else if(this.select==2){//type
+        this.searchByType(page)
+      }else if(this.select==3){//country
+        this.searchByCountry(page)
+      }else{//director
+        this.searchByDirector(page)
       }
     },
-    searchByName(list, keyWord) {
-    var reg =  new RegExp(keyWord);
-    var arr = [];
-    for (var i = 0; i < list.length; i++) {
-      if (reg.test(list[i].title)) {
-        arr.push(list[i]);
-      }
-    }
-    return arr;
-  },
+
+    searchByName(page) {
+      this.$axios
+       .get("/api/getFilmByName",{
+         params:{
+           name:this.search,
+           page:page
+         }
+       }).then(resp => {
+       if (resp.status === 200) {
+         this.searchedList=resp.data;
+         
+         this.totalFilms=this.searchedList.splice(-1,1)[0]
+         this.films = this.searchedList.filter(function(film){
+          film.directors.replace(","," ");
+
+          var types=new Array();
+          types=film.genres.split(",");
+          film.genres=types;
+
+          return film
+        })
+      } 
+    }).catch(err=>{
+      console.log(err)
+    });
+    },
+    searchByType(page) {
+      this.$axios
+       .get("/api/getFilmByType",{
+         params:{
+           type:this.search,
+           page:page
+         }
+       }).then(resp => {
+       if (resp.status === 200) {
+         this.searchedList=resp.data;
+         this.totalFilms=this.searchedList.splice(-1,1)[0]
+         this.films = this.searchedList.filter(function(film){
+          film.directors.replace(","," ");
+
+          var types=new Array();
+          types=film.genres.split(",");
+          film.genres=types;
+
+          return film
+        })
+      } 
+    }).catch(err=>{
+      console.log(err)
+    });
+    },
+    searchByCountry(page) {
+      this.$axios
+       .get("/api/getFilmByCountry",{
+         params:{
+           country:this.search,
+           page:page
+         }
+       }).then(resp => {
+       if (resp.status === 200) {
+        this.searchedList=resp.data;
+         
+         this.totalFilms=this.searchedList.splice(-1,1)[0]
+         this.films = this.searchedList.filter(function(film){
+          film.directors.replace(","," ");
+
+          var types=new Array();
+          types=film.genres.split(",");
+          film.genres=types;
+
+          return film
+        })
+      } 
+    }).catch(err=>{
+      console.log(err)
+    });
+    },
+    searchByDirector(page) {
+      this.$axios
+       .get("/api/getFilmByDirector",{
+         params:{
+           director:this.search,
+           page:page
+         }
+       }).then(resp => {
+       if (resp.status === 200) {
+         this.searchedList=resp.data;
+         this.totalFilms=this.searchedList.splice(-1,1)[0]
+         this.films = this.searchedList.filter(function(film){
+          film.directors.replace(","," ");
+
+          var types=new Array();
+          types=film.genres.split(",");
+          film.genres=types;
+
+          return film
+        })
+      } 
+    }).catch(err=>{
+      console.log(err)
+    });
+    },
     handleCurrentChange(val) {
-      this.films=this.searchedList.slice((val-1)*10,val*10)
+      this.init(val)
     },
     filmDetail(id) {
       this.$router.push({
@@ -177,7 +233,7 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 html,
 body {
   width: 100%;
@@ -216,14 +272,11 @@ body {
   color: #4e5c99ec;
   margin-top:-5px;
 }
-.pubdate {
-  font-size: 15px;
-}
 .intro {
   font-size: 13px;
   color: #535351ec;
   text-align: left;
-  height: 33px;
+  height: 34px;
   width: 370px;
   text-overflow: -o-ellipsis-lastline;
   overflow: hidden;
